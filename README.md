@@ -31,7 +31,7 @@ $solaxapi="";     // This is the Token ID you got from the SolaX Website API set
 
 $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in PVOutput) (e.g. 60123)
 
-$pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546
+$pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546)
 
 These variables are located on Lines 29,31,32,34 & 35 of the code
 
