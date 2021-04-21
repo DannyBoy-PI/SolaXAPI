@@ -17,6 +17,21 @@ This code should be called from a BASH script in CRON and run once a minute (Thi
 
 It will attempt to upload data to PVOuput ONLY when the minute is 00, 15, 30 or 45.
 
-Written for PHP 7.x with PHP CURL Extension installed.
+Written for PHP 7.x with PHP CURL Extension installed and designed to run on a Raspberry PI, but should work on any system with PHP installed.
 
 This software is free and no warranty is given for the saftey and fitness of it for any given purpose.
+
+There are several variables that need to be modified before you can run the code. These are:-
+
+$TEST="TRUE";  // If this is set to anything other than FALSE, data will NOT be uploaded to PVOutput, but will attempt a read from SolaX API
+
+$solaxsn="";      // This is your SolaX Dongle Serial Number (e.g. SWGHDSGEHAS)
+
+$solaxapi="";     // This is the Token ID you got from the SolaX Website API settings (e.g. 202102241645545324344)
+
+$pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in PVOutput) (e.g. 60123)
+
+$pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546
+
+These variables are located on Lines 29,31,32,34 & 35 of the code
+
