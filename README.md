@@ -11,7 +11,7 @@ historical API, this code will need to be replaced/modified to pull a range from
 
 This code assumes the data, log and executable files are all in the same directory.
 
-This code assumes you have the date/time/region set correctly.
+This code assumes you have the date/time/region set correctly. (Note: Date format used in the code is YYYY-MM-DD)
 
 This code should be called from a BASH script in CRON and run once a minute (This is important as upload rate is set as below).
 See example Solaxapi.sh included in repository.
@@ -35,4 +35,7 @@ $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in 
 $pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546)
 
 These variables are located on Lines 29,31,32,34 & 35 of the code
+
+Running the script with an argument (e.g. php /home/pi/Solax-pvoutput.php 2021-04-09) will process that whole days data file (so 9th April 2021, if datafile exists).
+Note the limits for PVOuput Donators/Non-Donators: Non-Donators 14 days old, 60 API calls an hour. Donators: 90 days old, 300 API calls per hour.
 
