@@ -39,12 +39,33 @@ $hours=2; // This is the number of hours back from the datafile to update (e.g. 
 
 $purgedays=63; // This is the age of data and log files to keep - Suggest this is at least two months plus one day (so 63);
 
+if (isset($argv[1])) { // Running the script with an argument date will attempt to batch process that day.
+$HISTORICAL="TRUE";    // e.g. "PHP Solax-pvoutput.php 2021-04-20" - This will attempt to upload data from 20th April 2021 datafile
+} else {               // Note: Non PVOutput donators are limited to 14 days old data and 60 API calls per hour...
+$HISTORICAL="FALSE";   // Donators can process data that is 90 days old and 300 API calls per hour...
+}
+
+if ($HISTORICAL == "FALSE") {
+
 $curtime=date('Y-m-d H:i:s'); // Get the current date and time from date
 $curmin=date('i'); // Get the current minute from date
 $date=date('Y-m-d'); // Get current date
 $datafile="SolaX-".$date."-data.solaxapi"; // Data file for this day
 
 TidyUpDataLogs($purgedays); // Purge old log and data files
+
+} else { // Use the date provided in the argument variable
+
+$date=$argv[1];
+$curtime="$date 23:45:00";
+$curmin="45";
+$datafile="SolaX-".$date."-data.solaxapi";
+$hours=24;
+
+GOTO JUMP;
+
+}
+
 
 //GOTO JUMP;  // Used to skip loading from SolaX API
 
@@ -65,7 +86,7 @@ $results = json_decode($contents);
 
 $json_error=json_last_error();
 
-if ($json_error <> 0) {
+if ($json_error <> 0 or $results->success == "") {
 print "\nAn error has occured connecting to SolaX API, proceeding to upload.\n";
 GOTO JUMP;
 
@@ -153,7 +174,7 @@ exit;
 $handle=fopen("$datafile", "r"); // Open datafile READ Only..
 
 $uldata=""; // This will be the variable used to contain the upload string
-$ectime=strtotime($curtime); // Convert current time to epoc
+$ectime=strtotime($curtime); // Convert current time to epoch
 $pctime=strtotime("-$hours hours", $ectime); // Process data from this time only (see $hours at the top of this code)
 
 //print "\n$ectime - $pctime\n";
@@ -170,9 +191,9 @@ $yieldtotal=$data[4];
 $powerdca=$data[5];
 $powerdcb=$data[6];
 
-$istime=strtotime($uploadtime); // Convert uploadtime to epoc
+$istime=strtotime($uploadtime); // Convert uploadtime to epoch
 
-//print "\n$istime - $pctime\n"; Just displays the epoc times
+//print "\n$istime - $pctime\n"; Just displays the epoch times
 
 if ($istime >= $pctime) { // The uploadtime falls within our upload range, so process it for upload to PVOutput.
 
