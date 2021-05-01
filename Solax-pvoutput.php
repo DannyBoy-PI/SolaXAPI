@@ -39,6 +39,8 @@ $hours=2; // This is the number of hours back from the datafile to update (e.g. 
 
 $purgedays=63; // This is the age of data and log files to keep - Suggest this is at least two months plus one day (so 63);
 
+$path = __DIR__."/"; // Get our directory path
+
 if (isset($argv[1])) { // Running the script with an argument date will attempt to batch process that day.
 $HISTORICAL="TRUE";    // e.g. "PHP Solax-pvoutput.php 2021-04-20" - This will attempt to upload data from 20th April 2021 datafile
 } else {               // Note: Non PVOutput donators are limited to 14 days old data and 60 API calls per hour...
@@ -50,7 +52,7 @@ if ($HISTORICAL == "FALSE") {
 $curtime=date('Y-m-d H:i:s'); // Get the current date and time from date
 $curmin=date('i'); // Get the current minute from date
 $date=date('Y-m-d'); // Get current date
-$datafile="SolaX-".$date."-data.solaxapi"; // Data file for this day
+$datafile=$path."SolaX-".$date."-data.solaxapi"; // Data file for this day
 
 TidyUpDataLogs($purgedays); // Purge old log and data files
 
@@ -59,7 +61,7 @@ TidyUpDataLogs($purgedays); // Purge old log and data files
 $date=$argv[1];
 $curtime="$date 23:45:00";
 $curmin="45";
-$datafile="SolaX-".$date."-data.solaxapi";
+$datafile=$path."SolaX-".$date."-data.solaxapi";
 $hours=24;
 
 GOTO JUMP;
