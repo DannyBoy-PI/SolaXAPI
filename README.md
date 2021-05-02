@@ -36,6 +36,7 @@ $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in 
 $pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546)
 
 $OWMAI="";        // This is your Openweathermap.org API Key (Leave blank if not using)
+
 $OWMCI="";        // This is your City ID in Openweathermap.org (Leave blank if not using)
 
 These variables are located on Lines 29,31,32,34,35,37 & 38 of the code
