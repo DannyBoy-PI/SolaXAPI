@@ -34,12 +34,16 @@ $solaxapi="";     // This is the Token ID you got from the SolaX Website API set
 $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in PVOutput) (e.g. 60123)
 $pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234cd)
 
+$OWMAI="";        // Openweathermap API Key - Add your API key here if you want weather/temp information
+$OWMCI="";        // Openweathermap City ID - Add your City ID here for weather/temp information
+
 $hours=2; // This is the number of hours back from the datafile to update (e.g. If this is 2 and it is 10am now, upload entries from 8am)
           // Do not set this number too high or you could run out of upload attempts per hour - Ideally set it to 1 or 2....
 
 $purgedays=63; // This is the age of data and log files to keep - Suggest this is at least two months plus one day (so 63);
 
 $path = __DIR__."/"; // Get our directory path
+$EOD = "FALSE"; // Define End Of Day status as false
 
 if (isset($argv[1])) { // Running the script with an argument date will attempt to batch process that day.
 $HISTORICAL="TRUE";    // e.g. "PHP Solax-pvoutput.php 2021-04-20" - This will attempt to upload data from 20th April 2021 datafile
@@ -50,9 +54,12 @@ $HISTORICAL="FALSE";   // Donators can process data that is 90 days old and 300 
 if ($HISTORICAL == "FALSE") {
 
 $curtime=date('Y-m-d H:i:s'); // Get the current date and time from date
+$curhour=date('H'); // Get the current hour from date
 $curmin=date('i'); // Get the current minute from date
 $date=date('Y-m-d'); // Get current date
 $datafile=$path."SolaX-".$date."-data.solaxapi"; // Data file for this day
+
+if ($curhour == "23" and $curmin == "59") {$EOD="TRUE";}
 
 TidyUpDataLogs($purgedays); // Purge old log and data files
 
@@ -60,9 +67,11 @@ TidyUpDataLogs($purgedays); // Purge old log and data files
 
 $date=$argv[1];
 $curtime="$date 23:45:00";
+$curhour="23";
 $curmin="45";
 $datafile=$path."SolaX-".$date."-data.solaxapi";
 $hours=24;
+$EOD="TRUE";
 
 GOTO JUMP;
 
@@ -141,6 +150,24 @@ if ($duplicate == "FALSE") {
 
 print "\nNew data received from SolaX API, updating todays datafile...\n";
 
+if ($OWMAI <> "" and $OWMCI <> "") { // Get current weather informaton from Openweathermap API
+
+$OWMGET=GetWeather($OWMAI,$OWMCI);
+
+print "\nCurrent Temp: $OWMGET\n";
+
+}
+
+if ($OWMGET <> "BAD") {
+
+$array=$array.",".$OWMGET;
+
+} else {
+
+$array=$array.",";
+
+}
+
 $handle=fopen("$datafile", "a");
 
 fwrite($handle,"$array\n");
@@ -193,6 +220,9 @@ $yieldtotal=$data[4];
 $powerdca=$data[5];
 $powerdcb=$data[6];
 
+$ctemp="";
+$ctemp=$data[9];  // Used if getting weather data from Openweathermap
+
 $istime=strtotime($uploadtime); // Convert uploadtime to epoch
 
 //print "\n$istime - $pctime\n"; Just displays the epoch times
@@ -208,7 +238,13 @@ $pdate="$pdateY"."$pdateM"."$pdateD";
 $ptime=date('H:i',strtotime($uploadtime));
 $yieldtoday=$yieldtoday*1000; // Convert yield today from kWh's to Wh's
 
-$uldata=$uldata.";$pdate,$ptime,$yieldtoday,$acpower";
+// Select one of the following below, comment out the other one. Letting PVOutput calculate the energy wil give better
+// average totals. Letting SolaX send the total generated will report exactly what the Inverter calculated, but the
+// averages will not be correct. Suggest leaving as set below and allow the End Of Day process to upload the SolaX
+// inverter calculations (This should then match on PVOutput what your Inverter reports).
+
+$uldata=$uldata.";$pdate,$ptime,,$acpower,,,$ctemp"; // This will let PVOutput Calculate the total energy
+//$uldata=$uldata.";$pdate,$ptime,$yieldtoday,$acpower,,,$ctemp"; // This will send SolaX caculated generated
 
 if ($count >= 25) {  // We have a batch of up to 25 reads, uploading batch
 
@@ -267,6 +303,12 @@ print "\n**INFORMATION** In test mode (No data will have been uploaded to PVOutp
 }
 
 print "\nUploaded to PVOutput...\n";
+
+if ($EOD == "TRUE") {
+print "\nRunning End Of Day process to upload SolaX totals\n"; // Upload SolaX Inverter Generation Figures
+EndOfDay($date,$datafile,$TEST,$pvoutputapi,$pvoutputsi);
+print "\n\n***End Of Day Complete***\n\n";
+}
 
 exit;
 
@@ -366,5 +408,103 @@ return;
 
 }
 
+function EndOfDay($date,$datafile,$TEST,$pvoutputapi,$pvoutputsi) { // Perform EOD upload to PVOutput
+
+if (!file_exists($datafile)) {
+print "\n**ERROR** Datafile $datafile does not exist !\n";
+return; // File doesn't exist yet, so can't have data in it !
+}
+
+$rows = file($datafile);
+$last_row = array_pop($rows);
+$data = str_getcsv($last_row);
+
+$uploadtime=$data[1];
+$yieldtoday=$data[3];
+$yieldtotal=$data[4];
+
+print "\nLast entry in datafile:-\n";
+
+print "\nUpload Time: $uploadtime";
+print "\nYield Today: $yieldtoday";
+print "\nYield Total: $yieldtotal";
+
+if ($uploadtime == "" or $yieldtoday == "" or $yieldtotal == "") {
+print "\n**ERROR** Bad data in data file, NOT uploading to PVOuput..\n";
+return;
+}
+
+$yieldtoday=$yieldtoday*1000; // Convert from kWh to Wh
+
+$pdateY=date('Y',strtotime($uploadtime));
+$pdateM=date('m',strtotime($uploadtime));
+$pdateD=date('d',strtotime($uploadtime));
+$pdate="$pdateY"."$pdateM"."$pdateD";
+
+$uldata="data=".$pdate.",".$yieldtoday;
+
+if ($TEST == "FALSE") {
+
+$ch = curl_init();// curl handle to post data to PVOutput
+
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_URL, 'https://pvoutput.org/service/r2/addoutput.jsp');
+curl_setopt($ch, CURLOPT_POSTFIELDS, "$uldata");
+curl_setopt($ch, CURLOPT_HTTPHEADER, array("X-Pvoutput-Apikey:$pvoutputapi","X-Pvoutput-SystemId:$pvoutputsi"));
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_exec  ($ch);
+curl_close ($ch);
+
+} else {
+
+print "\n**INFORMATION** In test mode (No data will have been uploaded to PVOutput)\n";
+
+}
+
+print "\nSent the following to PVOuput:-\n";
+print "$uldata\n";
+
+
+return;
+
+}
+
+function GetWeather($OWMAI,$OWMCI) {
+
+$OWMGET="BAD";
+
+$streamContext = stream_context_create(
+    array('http'=>
+        array(
+            'timeout' => 5,  // Timeout of 5 seconds
+        )
+    )
+);
+
+$url = sprintf('http://api.openweathermap.org/data/2.5/weather?id=%s&lang=en&units=metric&APPID=%s',
+		$OWMCI, $OWMAI);
+$contents = file_get_contents($url, false, $streamContext);
+$clima = json_decode($contents);
+
+$json_error=json_last_error();
+
+$temp=$clima->main->temp;
+
+if ($json_error <> 0) {
+
+return($OWMGET);
+
+} else {
+
+$OWMGET=round($temp, 1);
+
+}
+
+return($OWMGET);
+
+}
 
 ?>
