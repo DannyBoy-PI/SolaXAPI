@@ -4,6 +4,7 @@ SolaX API to PVOutput
 Connect to Solax RealTime API and Push to PVOutput
 
 It will pull the latest RealTime information about your inverter and store it in a datafile (No database needed).
+Now also gets Openweathermap.org Temperature if you want.
 
 It will then push the defined range up to PVOutput from that datafile. If the SolaX API service is unavailable, your inverter is
 in an abnormal state or there is no internet connectivity, you will get data gaps. If and when SolaX release a full
@@ -34,7 +35,10 @@ $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in 
 
 $pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234546)
 
-These variables are located on Lines 29,31,32,34 & 35 of the code
+$OWMAI="";        // This is your Openweathermap.org API Key (Leave blank if not using)
+$OWMCI="";        // This is your City ID in Openweathermap.org (Leave blank if not using)
+
+These variables are located on Lines 29,31,32,34,35,37 & 38 of the code
 
 Running the script with an argument (e.g. php /home/pi/Solax-pvoutput.php 2021-04-09) will process that whole days data file (so 9th April 2021, if datafile exists).
 Note the limits for PVOuput Donators/Non-Donators: Non-Donators 14 days old, 60 API calls an hour. Donators: 90 days old, 300 API calls per hour.
