@@ -14,7 +14,8 @@ This code assumes the data, log and executable files are all in the same directo
 
 This code assumes you have the date/time/region set correctly. (Note: Date format used in the code is YYYY-MM-DD)
 
-This code should be called from a BASH script in CRON and run once a minute (This is important as upload rate is set as below).
+This code should be called from a BASH script in CRON and run once a minute (This is important as upload rate is set as below
+plus the End Of Day process is set to run at 23:59).
 See example Solaxapi.sh included in repository.
 
 It will attempt to upload data to PVOuput ONLY when the minute is 00, 15, 30 or 45.
