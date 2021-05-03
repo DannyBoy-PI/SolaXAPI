@@ -192,6 +192,13 @@ $UPLOAD="TRUE";
 
 if ($UPLOAD == "FALSE") {
 print "\nThe minute is not 00, 15, 30 or 45 - So not attempting upload at this time..\n";
+
+if ($EOD == "TRUE") {
+print "\nRunning End Of Day process to upload SolaX totals\n"; // Upload SolaX Inverter Generation Figures
+EndOfDay($date,$datafile,$TEST,$pvoutputapi,$pvoutputsi);
+print "\n\n***End Of Day Complete***\n\n";
+}
+
 exit;
 }
 
