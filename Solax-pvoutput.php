@@ -228,7 +228,12 @@ $powerdca=$data[5];
 $powerdcb=$data[6];
 
 $ctemp="";
+
+if (isset($data[9])) {
+
 $ctemp=$data[9];  // Used if getting weather data from Openweathermap
+
+}
 
 $istime=strtotime($uploadtime); // Convert uploadtime to epoch
 
