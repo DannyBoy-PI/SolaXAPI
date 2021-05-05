@@ -16,7 +16,9 @@
 //
 // It will attempt to upload data to PVOuput ONLY when the minute is 00, 15, 30 or 45.
 //
-//
+// Version 1.0 - Original Release 17/04/2021
+// Version 1.1 - Added End Of Day, Historical Upload and Openweathermap.org Features 01/05/2021
+// Version 1.2 - Updated to pull all feeds from SolaX regardless of Inverter status and only upload good data 04/05/2021
 //
 // Written by D.C.Moore 17/04/2021
 //
@@ -34,8 +36,8 @@ $solaxapi="";     // This is the Token ID you got from the SolaX Website API set
 $pvoutputsi="";   // This is your PV Output System ID (find it in "Settings" in PVOutput) (e.g. 60123)
 $pvoutputapi="";  // This is your PV Output API Key (find/create it in "Settings" in PVOutput) (e.g. 2ea67a13b068ca08fabc534535abcd66234cd)
 
-$OWMAI="";        // Openweathermap API Key - Add your API key here if you want weather/temp information
-$OWMCI="";        // Openweathermap City ID - Add your City ID here for weather/temp information
+$OWMAI=""; // Openweathermap API Key - Add your API key here if you want weather/temp information (e.g. ad789008bcf7897979cd9797ef)
+$OWMCI="";                          // Openweathermap City ID - Add your City ID here for weather/temp information (e.g. 250012)
 
 $hours=2; // This is the number of hours back from the datafile to update (e.g. If this is 2 and it is 10am now, upload entries from 8am)
           // Do not set this number too high or you could run out of upload attempts per hour - Ideally set it to 1 or 2....
@@ -136,8 +138,6 @@ if ($status == 101) {print "\nInverter is in CHECK mode, check inverter for erro
 if ($status == 103) {print "\nInverter is in FAULT mode, check inverter for errors !!\n";}
 if ($status == 104) {print "\nInverter is in PERMANENT FAULT mode, check inverter for errors !!!\n";}
 if ($status >= 105 and $status <= 113) {print "\nInverter is in an abnormal state, check inverter for errors !\n";}
-print "\nProceeding to upload..\n";
-GOTO JUMP;
 }
 
 // If we are here, the data from SolaX API appears good, so add to todays datafile.
@@ -200,6 +200,7 @@ print "\n\n***End Of Day Complete***\n\n";
 }
 
 exit;
+
 }
 
 if (!file_exists($datafile)) {
@@ -226,6 +227,7 @@ $yieldtoday=$data[3];
 $yieldtotal=$data[4];
 $powerdca=$data[5];
 $powerdcb=$data[6];
+$status=$data[7];
 
 $ctemp="";
 
@@ -255,8 +257,18 @@ $yieldtoday=$yieldtoday*1000; // Convert yield today from kWh's to Wh's
 // averages will not be correct. Suggest leaving as set below and allow the End Of Day process to upload the SolaX
 // inverter calculations (This should then match on PVOutput what your Inverter reports).
 
+if ($status == "102") { // Check to make sure this is a valid entry for upload
+
 $uldata=$uldata.";$pdate,$ptime,,$acpower,,,$ctemp"; // This will let PVOutput Calculate the total energy
 //$uldata=$uldata.";$pdate,$ptime,$yieldtoday,$acpower,,,$ctemp"; // This will send SolaX caculated generated
+
+} else {
+
+$uldata=$uldata;
+
+$count=$count-1;
+
+}
 
 if ($count >= 25) {  // We have a batch of up to 25 reads, uploading batch
 
@@ -427,21 +439,47 @@ print "\n**ERROR** Datafile $datafile does not exist !\n";
 return; // File doesn't exist yet, so can't have data in it !
 }
 
-$rows = file($datafile);
-$last_row = array_pop($rows);
-$data = str_getcsv($last_row);
+$handle=fopen("$datafile", "r"); // Open datafile READ Only..
+
+$l_status=0;
+$l_yieldtoday=0;
+$l_yieldtotal=0;
+$l_uploadtime="BAD";
+
+while (($data=fgetcsv($handle)) !== FALSE) {
 
 $uploadtime=$data[1];
 $yieldtoday=$data[3];
 $yieldtotal=$data[4];
+$status=$data[7];
 
-print "\nLast entry in datafile:-\n";
+if ($status == "102") { // Was this record while the inverter was in a normal state
+
+if ($yieldtoday >= $l_yieldtoday) {
+
+$l_yieldtoday=$yieldtoday;
+$l_yieldtotal=$yieldtotal;
+$l_uploadtime=$uploadtime;
+
+}
+
+}
+
+}
+
+fclose($handle);
+
+$uploadtime=$l_uploadtime;
+$yieldtoday=$l_yieldtoday;
+$yieldtotal=$l_yieldtotal;
+
+print "\nLast valid entry in datafile:-\n";
 
 print "\nUpload Time: $uploadtime";
 print "\nYield Today: $yieldtoday";
 print "\nYield Total: $yieldtotal";
 
-if ($uploadtime == "" or $yieldtoday == "" or $yieldtotal == "") {
+if ($uploadtime == "BAD" or $yieldtoday == "0" or $yieldtotal == "0") {
 print "\n**ERROR** Bad data in data file, NOT uploading to PVOuput..\n";
 return;
 }
