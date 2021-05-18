@@ -26,6 +26,7 @@ To install PHP7.3 plus CURL and a few other add-ons on a Raspberry Pi 3B+/4B+:-
 Open a command prompt/terminal and issue the following commands...
 
 sudo apt install php7.3-common php7.3-curl php7.3-cli php7.3-json
+
 sudo reboot
 
 This software is free and no warranty is given for the saftey and fitness of it for any given purpose.
