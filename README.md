@@ -20,7 +20,13 @@ See example Solaxapi.sh included in repository.
 
 It will attempt to upload data to PVOuput ONLY when the minute is 00, 15, 30 or 45.
 
-Written for PHP 7.x with PHP CURL Extension installed and designed to run on a Raspberry PI, but should work on any system with PHP installed.
+Written for PHP 7.x with PHP CURL & JSON Extension installed and designed to run on a Raspberry PI, but should work on any system with PHP installed.
+To install PHP7.3 plus CURL and a few other add-ons on a Raspberry Pi 3B+/4B+:-
+
+Open a command prompt/terminal and issue the following commands...
+
+sudo apt install php7.3-common php7.3-curl php7.3-cli php7.3-json
+sudo reboot
 
 This software is free and no warranty is given for the saftey and fitness of it for any given purpose.
 
