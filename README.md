@@ -40,7 +40,7 @@ $OWMAI="";        // This is your Openweathermap.org API Key (Leave blank if not
 
 $OWMCI="";        // This is your City ID in Openweathermap.org (Leave blank if not using)
 
-These variables are located on Lines 29,31,32,34,35,37 & 38 of the code
+These variables are located on Lines 31->45 of the code (plus a few others which are self explanatory)
 
 Running the script with an argument (e.g. php /home/pi/Solax-pvoutput.php 2021-04-09) will process that whole days data file (so 9th April 2021, if datafile exists).
 Note the limits for PVOuput Donators/Non-Donators: Non-Donators 14 days old, 60 API calls an hour. Donators: 90 days old, 300 API calls per hour.
