@@ -19,6 +19,7 @@
 // Version 1.0 - Original Release 17/04/2021
 // Version 1.1 - Added End Of Day, Historical Upload and Openweathermap.org Features 01/05/2021
 // Version 1.2 - Updated to pull all feeds from SolaX regardless of Inverter status and only upload good data 04/05/2021
+// Version 1.2a - Updated to pull via HTTPS from Openweatherwap.org 19/05/2021
 //
 // Written by D.C.Moore 17/04/2021
 //
@@ -534,7 +535,7 @@ $streamContext = stream_context_create(
     )
 );
 
-$url = sprintf('http://api.openweathermap.org/data/2.5/weather?id=%s&lang=en&units=metric&APPID=%s',
+$url = sprintf('https://api.openweathermap.org/data/2.5/weather?id=%s&lang=en&units=metric&APPID=%s',
 		$OWMCI, $OWMAI);
 $contents = file_get_contents($url, false, $streamContext);
 $clima = json_decode($contents);
